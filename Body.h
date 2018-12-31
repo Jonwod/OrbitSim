@@ -13,6 +13,7 @@ public:
 	inline const Vec2& getPosition() const { return _visual.getPosition(); };
 	inline const float& getMass() const { return _mass; };
 	inline void setVelocity(const Vec2& newVelocity) { _velocity = newVelocity; }
+	inline const Vec2& getVelocity() const { return _velocity; }
 	inline void draw(sf::RenderWindow& window) { window.draw(_visual); }
 	inline void applyImpulse(const Vec2& impulse) { _velocity += impulse / getMass(); }
 private:
