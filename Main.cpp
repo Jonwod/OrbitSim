@@ -4,16 +4,18 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(600, 400), "SFML works!");
+	sf::RenderWindow window(sf::VideoMode(1000, 1000), "SFML works!");
 	
-	Body planet(50.f);
-	planet.setPosition({ 0.f, 0.f });
-	planet.setVelocity({20.f, 10.f});
+	Body planet(50.f, 125000);
+	planet.setPosition({ 500.f, 500.f });
 
 	constexpr float framerate = 60.f;
 	window.setFramerateLimit(framerate);
 	sf::Clock framerateClock;
 	sf::Time deltaT = sf::seconds(1.0f / framerate);
+
+	Body moon(10.f, 1000.f);
+	moon.setPosition({ 500.f, 250.f });
 
 	while (window.isOpen())
 	{
@@ -25,9 +27,11 @@ int main()
 		}
 
 		planet.step(deltaT.asSeconds());
+		moon.step(deltaT.asSeconds());
 
 		window.clear();
 		planet.draw(window);
+		moon.draw(window);
 		window.display();
 
 		deltaT = framerateClock.restart();

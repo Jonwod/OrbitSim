@@ -6,7 +6,7 @@ typedef sf::Vector2f Vec2;
 
 class Body {
 public:
-	Body(float radius);
+	Body(float radius, float mass);
 	//Steps this body forward by dt seconds
 	void step(float dt);
 	inline void setPosition(const Vec2& newPosition) { _visual.setPosition(newPosition); }
@@ -16,4 +16,5 @@ public:
 private:
 	sf::CircleShape _visual;
 	Vec2 _velocity{ 0.f, 0.f };
+	float _mass;
 };
