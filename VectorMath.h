@@ -1,5 +1,18 @@
 #pragma once
+#include <sstream>
+#include <string>
 #include "SFML\System\Vector2.hpp"
+
+template<typename T>
+std::string toString(sf::Vector2<T> vec) {
+	std::stringstream ssx;
+	ssx << vec.x;
+
+	std::stringstream ssy;
+	ssy << vec.y;
+
+	return "(" + std::string(ssx.str()) + ", " + std::string(ssy.str()) + ")";
+}
 
 namespace VMath {
 
