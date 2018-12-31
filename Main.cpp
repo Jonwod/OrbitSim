@@ -1,10 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <iostream>
+#include <string>
 #include "Body.h"
 #include "VectorMath.h"
 
 
-constexpr float gravityStrength = 20.f;
+constexpr float gravityStrength = 2.f;
 
 
 // Returns the scalar speed for body to orbit other_body in a circle
@@ -26,6 +28,52 @@ void gravitate(Body& a, const Body& b, float delta) {
 }
 
 
+// ~~~~~~~~~HUD~~~~~~~~~~~~
+
+class HUD {
+public:
+	HUD(const Body& orbiter, const Body& centerBody) 
+		:_startRadius(VMath::magnitude(orbiter.getPosition() - centerBody.getPosition()))
+	{
+		if (!_font.loadFromFile("arial.ttf"))
+			std::cout << "Error. arial.ttf not found\n";
+
+		startRadiusText.setCharacterSize(14);
+		currentRadiusText.setCharacterSize(14);
+		errorText.setCharacterSize(14);
+
+		startRadiusText.setPosition({10.f, 0.f});
+		currentRadiusText.setPosition({ 10.f, 20.f});
+		errorText.setPosition({10.f, 40.f});
+
+		startRadiusText.setString("start radius: " + std::to_string(_startRadius));
+	}
+
+
+	void update(const Body& orbiter, const Body& centerBody) {
+		const float radius = VMath::magnitude(orbiter.getPosition() - centerBody.getPosition());
+		currentRadiusText.setString("current radius: " + std::to_string(radius));
+		errorText.setString("error : " + std::to_string(radius - _startRadius));
+	}
+
+
+	void draw(sf::RenderWindow& window) {
+		window.draw(startRadiusText);
+		window.draw(currentRadiusText);
+		window.draw(errorText);
+	}
+
+	sf::Text startRadiusText{"start radius: ", _font};
+	sf::Text currentRadiusText{"current radius: ", _font};
+	sf::Text errorText{"error: ", _font};
+private:
+	sf::Font _font;
+	const float _startRadius;
+};
+
+//
+
+
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1000, 1000), "SFML works!");
@@ -42,6 +90,8 @@ int main()
 
 	moon.setVelocity({ speedForCircularOrbit(moon, planet), 0.f});
 	//planet.setVelocity({ -speedForCircularOrbit(planet, moon), 0.f });
+
+	HUD hud(moon, planet);
 
 	const float timeStep = 1.0f / framerate;
 
@@ -63,6 +113,8 @@ int main()
 		window.clear();
 		planet.draw(window);
 		moon.draw(window);
+		hud.update(moon, planet);
+		hud.draw(window);
 		window.display();
 
 		framerateClock.restart();
