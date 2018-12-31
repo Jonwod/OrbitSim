@@ -11,6 +11,7 @@ public:
 	void step(float dt);
 	inline void setPosition(const Vec2& newPosition) { _visual.setPosition(newPosition); }
 	inline const Vec2& getPosition() const { return _visual.getPosition(); };
+	inline const float& getMass() const { return _mass; };
 	inline void setVelocity(const Vec2& newVelocity) { _velocity = newVelocity; }
 	inline void draw(sf::RenderWindow& window) { window.draw(_visual); }
 private:
