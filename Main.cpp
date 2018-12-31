@@ -6,7 +6,7 @@
 #include "VectorMath.h"
 
 
-constexpr float gravityStrength = 3.f;
+constexpr float gravityStrength = 0.2f;
 
 
 // Returns the scalar speed for body to orbit other_body in a circle
@@ -24,6 +24,31 @@ void gravitate(Body& a, const Body& b, float delta) {
 		const float force_due_to_gravity = (gravityStrength * a.getMass() * b.getMass()) / pow(dis, 2);
 		const Vec2 a_to_b = VMath::normal(b.getPosition() - a.getPosition());
 		a.applyImpulse(a_to_b * force_due_to_gravity * delta);
+	}
+}
+
+
+/*
+	NOTES:
+	Using this 2nd Order method, the orbiting body seems to spiral into the other body...
+	This is not the expected result. This approximation should still produce a force slightly less than necessary to sustain a perfect circular orbit
+*/
+void gravitate_2ndOrder(Body& a, const Body& b, float delta) {
+	const float dis = VMath::magnitude(a.getPosition() - b.getPosition());
+	if (dis != 0.f) {
+		const float force_due_to_gravity = (gravityStrength * a.getMass() * b.getMass()) / pow(dis, 2);
+
+		const Vec2 a_to_b = VMath::normal(b.getPosition() - a.getPosition());
+		const Vec2 startForce = a_to_b * force_due_to_gravity;
+		const Vec2 startVelocity = a.getVelocity() + (startForce * delta) / a.getMass();
+
+		const Vec2 projectedPosition = a.getPosition() + startVelocity * delta;
+		const Vec2 projected_a_to_b = VMath::safeNormal(b.getPosition() - projectedPosition);
+
+		const Vec2 endForce = projected_a_to_b * force_due_to_gravity;
+
+		const Vec2 averageForce = (startForce + endForce) / 2.f;
+		a.applyImpulse(averageForce * delta);
 	}
 }
 
@@ -62,7 +87,7 @@ public:
 	}
 
 
-	void draw(sf::RenderWindow& window) {
+	void draw(sf::RenderWindow& window) const {
 		window.draw(startRadiusText);
 		window.draw(currentRadiusText);
 		window.draw(errorText);
@@ -90,10 +115,10 @@ int main()
 	planet.setPosition({ 500.f, 500.f });
 
 	constexpr float framerate = 60.f;
-	window.setFramerateLimit(framerate);
+	window.setFramerateLimit(unsigned int(framerate));
 	sf::Clock framerateClock;
 	
-	Body moon(10.f, 1000.f);
+	Body moon(10.f, 1000000.f);
 	moon.setPosition({ 500.f, 250.f });
 
 	moon.setVelocity({ speedForCircularOrbit(moon, planet), 0.f});
@@ -112,8 +137,10 @@ int main()
 				window.close();
 		}
 
-		gravitate(moon, planet, timeStep);
-		//gravitate(planet, moon, timeStep);
+		// NOTE: Putting step before gravitate doesn't seem to make much difference...
+
+		gravitate_2ndOrder(moon, planet, timeStep);
+		gravitate_2ndOrder(planet, moon, timeStep);
 
 		planet.step(timeStep);
 		moon.step(timeStep);
