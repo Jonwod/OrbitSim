@@ -14,6 +14,7 @@ public:
 	inline const float& getMass() const { return _mass; };
 	inline void setVelocity(const Vec2& newVelocity) { _velocity = newVelocity; }
 	inline void draw(sf::RenderWindow& window) { window.draw(_visual); }
+	inline void applyImpulse(const Vec2& impulse) { _velocity += impulse / getMass(); }
 private:
 	sf::CircleShape _visual;
 	Vec2 _velocity{ 0.f, 0.f };
