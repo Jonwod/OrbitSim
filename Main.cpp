@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "Body.h"
+#include "HUD.h"
 #include "VectorMath.h"
 
 
@@ -53,59 +54,6 @@ void gravitate_2ndOrder(Body& a, const Body& b, float delta) {
 }
 
 
-// ~~~~~~~~~HUD~~~~~~~~~~~~
-
-class HUD {
-public:
-	HUD(const Body& orbiter, const Body& centerBody) 
-		:_startRadius(VMath::magnitude(orbiter.getPosition() - centerBody.getPosition()))
-	{
-		if (!_font.loadFromFile("arial.ttf"))
-			std::cout << "Error. arial.ttf not found\n";
-
-		startRadiusText.setCharacterSize(14);
-		currentRadiusText.setCharacterSize(14);
-		errorText.setCharacterSize(14);
-		maxErrorText.setCharacterSize(14);
-
-		startRadiusText.setPosition({10.f, 0.f});
-		currentRadiusText.setPosition({ 10.f, 20.f});
-		errorText.setPosition({10.f, 40.f});
-		maxErrorText.setPosition({ 10.f, 60.f });
-
-		startRadiusText.setString("start radius: " + std::to_string(_startRadius));
-	}
-
-
-	void update(const Body& orbiter, const Body& centerBody) {
-		const float radius = VMath::magnitude(orbiter.getPosition() - centerBody.getPosition());
-		const float error = radius - _startRadius;
-		_maxError = std::max(std::fabs(error), _maxError);
-		currentRadiusText.setString("current radius: " + std::to_string(radius));
-		errorText.setString("error : " + std::to_string(error));
-		maxErrorText.setString("max error: " + std::to_string(_maxError));
-	}
-
-
-	void draw(sf::RenderWindow& window) const {
-		window.draw(startRadiusText);
-		window.draw(currentRadiusText);
-		window.draw(errorText);
-		window.draw(maxErrorText);
-	}
-
-	sf::Text startRadiusText{"start radius: ", _font};
-	sf::Text currentRadiusText{"current radius: ", _font};
-	sf::Text errorText{"error: ", _font};
-	sf::Text maxErrorText{"max error: ", _font};
-private:
-	sf::Font _font;
-	const float _startRadius;
-	float _maxError = 0.f;
-};
-
-//
-
 
 int main()
 {
@@ -123,6 +71,8 @@ int main()
 
 	moon.setVelocity({ speedForCircularOrbit(moon, planet), 0.f});
 	//planet.setVelocity({ -speedForCircularOrbit(planet, moon), 0.f });
+	//planet.setVelocity( -(moon.getVelocity() * moon.getMass()) / planet.getMass() );
+
 
 	HUD hud(moon, planet);
 
@@ -139,8 +89,8 @@ int main()
 
 		// NOTE: Putting step before gravitate doesn't seem to make much difference...
 
-		gravitate_2ndOrder(moon, planet, timeStep);
-		gravitate_2ndOrder(planet, moon, timeStep);
+		gravitate(moon, planet, timeStep);
+		gravitate(planet, moon, timeStep);
 
 		planet.step(timeStep);
 		moon.step(timeStep);
