@@ -3,17 +3,17 @@
 #include <iostream>
 #include <string>
 #include "Body.h"
+#include "KinematicOrbiter.h"
 #include "HUD.h"
+#include "Constants.h"
 #include "VectorMath.h"
 
-
-constexpr float gravityStrength = 0.2f;
 
 
 // Returns the scalar speed for body to orbit other_body in a circle
 float speedForCircularOrbit(const Body& body, const Body& otherBody) {
 	const float r = VMath::magnitude(body.getPosition() - otherBody.getPosition());
-	const float orbital_v = sqrt((gravityStrength * otherBody.getMass()) / r);
+	const float orbital_v = sqrt((G * otherBody.getMass()) / r);
 	return orbital_v;
 }
 
@@ -22,7 +22,7 @@ float speedForCircularOrbit(const Body& body, const Body& otherBody) {
 void gravitate(Body& a, const Body& b, float delta) {
 	const float dis = VMath::magnitude(a.getPosition() - b.getPosition());
 	if (dis != 0.f) {
-		const float force_due_to_gravity = (gravityStrength * a.getMass() * b.getMass()) / pow(dis, 2);
+		const float force_due_to_gravity = (G * a.getMass() * b.getMass()) / pow(dis, 2);
 		const Vec2 a_to_b = VMath::normal(b.getPosition() - a.getPosition());
 		a.applyImpulse(a_to_b * force_due_to_gravity * delta);
 	}
@@ -37,7 +37,7 @@ void gravitate(Body& a, const Body& b, float delta) {
 void gravitate_2ndOrder(Body& a, const Body& b, float delta) {
 	const float dis = VMath::magnitude(a.getPosition() - b.getPosition());
 	if (dis != 0.f) {
-		const float force_due_to_gravity = (gravityStrength * a.getMass() * b.getMass()) / pow(dis, 2);
+		const float force_due_to_gravity = (G * a.getMass() * b.getMass()) / pow(dis, 2);
 
 		const Vec2 a_to_b = VMath::normal(b.getPosition() - a.getPosition());
 		const Vec2 startForce = a_to_b * force_due_to_gravity;
@@ -57,7 +57,7 @@ void gravitate_2ndOrder(Body& a, const Body& b, float delta) {
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(1000, 1000), "SFML works!");
+	sf::RenderWindow window(sf::VideoMode(1800, 1000), "SFML works!");
 	
 	Body planet(50.f, 125000000);
 	planet.setPosition({ 500.f, 500.f });
@@ -66,13 +66,16 @@ int main()
 	window.setFramerateLimit(unsigned int(framerate));
 	sf::Clock framerateClock;
 	
-	Body moon(10.f, 1000000.f);
+	Body moon(10.f, 10.f);
 	moon.setPosition({ 500.f, 250.f });
 
 	moon.setVelocity({ speedForCircularOrbit(moon, planet), 0.f});
 	//planet.setVelocity({ -speedForCircularOrbit(planet, moon), 0.f });
 	//planet.setVelocity( -(moon.getVelocity() * moon.getMass()) / planet.getMass() );
 
+	KinematicOrbiter kinematicMoon{10.f, 10.f};
+	kinematicMoon.setPosition(moon.getPosition());
+	kinematicMoon.setOrbitTarget(&planet, true);
 
 	HUD hud(moon, planet);
 
@@ -94,10 +97,12 @@ int main()
 
 		planet.step(timeStep);
 		moon.step(timeStep);
+		kinematicMoon.step(timeStep);
 
 		window.clear();
 		planet.draw(window);
 		moon.draw(window);
+		kinematicMoon.draw(window);
 		hud.update(moon, planet);
 		hud.draw(window);
 		window.display();

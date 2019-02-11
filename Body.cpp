@@ -1,10 +1,10 @@
 #include "Body.h"
 
-Body::Body(float radius, float mass)
+Body::Body(float radius, float mass, sf::Color color)
 	:_visual(radius),
 	_mass(mass)
 {
-	_visual.setFillColor(sf::Color::Green);
+	_visual.setFillColor(color);
 	_visual.setOrigin({ radius, radius});
 }
 
